@@ -13,4 +13,4 @@ RosterHive to aplikacja webowa w ASP.NET Core MVC (.NET 8) do zarządzania zespo
 4. W konsoli wykonaj polecenie: Update-Database
 5. Uruchom aplikację.
 
-Od tego momentu, po zalogowaniu na konto root (login: admin@rosterhive.local, password: Admin123!), użytkownik może rozpocząć wykonywanie operacji wewnątrz gotowej aplikacji. Obejmuje to operacje na użytkownikach, zespołach, zadaniach oraz innych uwzględnionych modułach.
+Od tego momentu, po zalogowaniu na konto root, użytkownik może rozpocząć wykonywanie operacji wewnątrz gotowej aplikacji. Obejmuje to operacje na użytkownikach, zespołach, zadaniach oraz innych uwzględnionych modułach.
