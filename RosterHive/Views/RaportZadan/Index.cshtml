@@ -1,0 +1,180 @@
+﻿@model RosterHive.ViewModels.TaskReportViewModel
+@using RosterHive.Models
+@{
+    ViewData["Title"] = "Raport zadań";
+}
+
+<h1>Raport zadań</h1>
+<hr />
+
+<form method="get" class="row g-2 align-items-end mb-4">
+    <div class="col-md-4">
+        <label class="form-label">Zespół</label>
+        <select class="form-select" name="teamId" required>
+            @foreach (var t in Model.Teams)
+            {
+                <option value="@t.Id" selected="@(t.Id == Model.TeamId)">@t.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Od</label>
+        <input class="form-control" type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Do</label>
+        <input class="form-control" type="date" name="to" value="@Model.To.ToString("yyyy-MM-dd")" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Status</label>
+        <select class="form-select" name="status">
+            <option value="">Wszystkie</option>
+            <option value="@TaskItemStatus.Nowe" selected="@(Model.Status == TaskItemStatus.Nowe)">Nowe</option>
+            <option value="@TaskItemStatus.Wtoku" selected="@(Model.Status == TaskItemStatus.Wtoku)">W toku</option>
+            <option value="@TaskItemStatus.Zakonczone" selected="@(Model.Status == TaskItemStatus.Zakonczone)">Zakończone</option>
+            <option value="@TaskItemStatus.Anulowane" selected="@(Model.Status == TaskItemStatus.Anulowane)">Anulowane</option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Przypisane do</label>
+        <select class="form-select" name="assignedToUserId">
+            <option value="">Wszyscy</option>
+            <option value="__unassigned__" selected="@(Model.AssignedToUserId == "__unassigned__")">Nieprzypisane</option>
+            @foreach (var u in Model.Users)
+            {
+                <option value="@u.UserId" selected="@(Model.AssignedToUserId == u.UserId)">@u.Email</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-1 d-grid">
+        <button class="btn btn-primary" type="submit">OK</button>
+    </div>
+</form>
+
+<div class="d-flex gap-2 mb-3">
+    <a class="btn btn-outline-secondary"
+       asp-action="EksportCsv"
+       asp-route-teamId="@Model.TeamId"
+       asp-route-from="@Model.From.ToString("yyyy-MM-dd")"
+       asp-route-to="@Model.To.ToString("yyyy-MM-dd")"
+       asp-route-status="@(Model.Status.HasValue ? Model.Status.ToString() : null)"
+       asp-route-assignedToUserId="@Model.AssignedToUserId">
+        Eksport CSV
+    </a>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Podsumowanie ogólne</h5>
+        <div class="row g-2">
+            <div class="col-md-3"><strong>Łącznie:</strong> @Model.TotalCount</div>
+            <div class="col-md-3"><strong>Zakończone:</strong> @Model.CompletedCount</div>
+            <div class="col-md-3"><strong>W terminie:</strong> @Model.CompletedOnTimeCount</div>
+            <div class="col-md-3"><strong>Po terminie:</strong> @Model.CompletedLateCount</div>
+            <div class="col-md-3"><strong>Zakończone bez terminu:</strong> @Model.CompletedNoDueDateCount</div>
+            <div class="col-md-3"><strong>Zaległe otwarte:</strong> @Model.OverdueOpenCount</div>
+            <div class="col-md-3"><strong>Otwarte bez terminu:</strong> @Model.NoDueDateOpenCount</div>
+        </div>
+    </div>
+</div>
+
+<h4 class="mb-2">Podsumowanie (wg przypisania)</h4>
+
+@if (Model.Summary.Count == 0)
+{
+    <div class="alert alert-info">Brak danych w wybranym zakresie.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Przypisane do</th>
+                <th class="text-end">Łącznie</th>
+                <th class="text-end">Nowe</th>
+                <th class="text-end">W toku</th>
+                <th class="text-end">Zakończone</th>
+                <th class="text-end">Anulowane</th>
+                <th class="text-end">W terminie</th>
+                <th class="text-end">Po terminie</th>
+                <th class="text-end">Bez terminu</th>
+                <th class="text-end">Zaległe otwarte</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model.Summary)
+            {
+                <tr>
+                    <td>@r.Assignee</td>
+                    <td class="text-end">@r.Total</td>
+                    <td class="text-end">@r.NewCount</td>
+                    <td class="text-end">@r.InProgressCount</td>
+                    <td class="text-end">@r.CompletedCount</td>
+                    <td class="text-end">@r.CanceledCount</td>
+                    <td class="text-end">@r.CompletedOnTime</td>
+                    <td class="text-end">@r.CompletedLate</td>
+                    <td class="text-end">@r.CompletedNoDueDate</td>
+                    <td class="text-end">@r.OverdueOpen</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h4 class="mt-4 mb-2">Szczegóły</h4>
+
+@if (Model.Tasks.Count == 0)
+{
+    <div class="alert alert-info">Brak zadań w wybranym zakresie.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Tytuł</th>
+                <th>Przypisane do</th>
+                <th>Priorytet</th>
+                <th>Status</th>
+                <th>Utworzono</th>
+                <th>Termin</th>
+                <th>Zakończono</th>
+                <th style="width: 1%"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in Model.Tasks)
+            {
+                var termin = t.DueDate.HasValue ? t.DueDate.Value.ToString("yyyy-MM-dd") : "-";
+                var zakonczono = t.CompletedAt.HasValue ? t.CompletedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm") : "-";
+
+                var badge = "";
+                if (t.IsOverdueOpen) badge = "Zaległe";
+                else if (t.IsCompletedLate) badge = "Po terminie";
+                else if (t.IsCompletedOnTime) badge = "W terminie";
+                else if (t.IsCompletedNoDueDate) badge = "Zakończone bez terminu";
+
+                <tr>
+                    <td>@t.Title</td>
+                    <td>@t.Assignee</td>
+                    <td>@t.Priority</td>
+                    <td>@t.Status</td>
+                    <td>@t.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@termin</td>
+                    <td>@zakonczono</td>
+                    <td class="text-end">
+                        @if (!string.IsNullOrWhiteSpace(badge))
+                        {
+                            <span class="badge bg-secondary">@badge</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

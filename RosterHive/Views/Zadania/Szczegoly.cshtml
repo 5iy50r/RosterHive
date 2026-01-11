@@ -1,0 +1,134 @@
+﻿@model RosterHive.ViewModels.TaskDetailsViewModel
+@using RosterHive.Models
+@{
+    ViewData["Title"] = "Szczegóły zadania";
+    var t = Model.Task;
+    var error = ViewBag.Error as string;
+    var success = ViewBag.Success as string;
+}
+
+<h1>Szczegóły zadania</h1>
+<hr />
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+@if (!string.IsNullOrWhiteSpace(success))
+{
+    <div class="alert alert-success">@success</div>
+}
+
+<div class="d-flex gap-2 mb-3">
+    <a class="btn btn-outline-secondary" asp-action="Zespol" asp-route-teamId="@t.TeamId">Zadania zespołu</a>
+    <a class="btn btn-outline-secondary" asp-action="Moje">Moje zadania</a>
+    @if (Model.CanManage)
+    {
+        <a class="btn btn-outline-secondary" asp-action="Edytuj" asp-route-id="@t.Id">Edytuj</a>
+        <a class="btn btn-outline-danger" asp-action="Usun" asp-route-id="@t.Id">Usuń</a>
+    }
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h4 class="card-title">@t.Title</h4>
+        <div class="text-muted">Zespół: <strong>@t.Team.Name</strong></div>
+
+        <div class="mt-2">
+            <span class="badge bg-secondary">@t.Status</span>
+            <span class="badge bg-info text-dark">@t.Priority</span>
+            @if (t.DueDate.HasValue)
+            {
+                <span class="badge bg-light text-dark">Termin: @t.DueDate.Value.ToString("yyyy-MM-dd")</span>
+            }
+        </div>
+
+        <div class="mt-3">
+            <div><strong>Przypisane do:</strong> @(string.IsNullOrWhiteSpace(Model.AssignedLabel) ? "-" : Model.AssignedLabel)</div>
+            <div><strong>Utworzył:</strong> @Model.CreatedByLabel</div>
+            <div><strong>Utworzono:</strong> @t.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+            @if (t.UpdatedAt.HasValue)
+            {
+                <div><strong>Ostatnia zmiana:</strong> @t.UpdatedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+            }
+            @if (t.ShiftId.HasValue && t.Shift != null)
+            {
+                <div class="mt-2"><strong>Powiązana zmiana:</strong> @t.Shift.Start.ToString("yyyy-MM-dd HH:mm") – @t.Shift.End.ToString("HH:mm")</div>
+            }
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(t.Description))
+        {
+            <hr />
+            <div style="white-space: pre-wrap;">@t.Description</div>
+        }
+    </div>
+</div>
+
+@if (Model.CanChangeStatus)
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Zmień status</h5>
+            <form method="post" asp-action="ZmienStatus" class="d-flex gap-2">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@t.Id" />
+                <select class="form-select" name="status">
+                    <option value="@TaskItemStatus.Nowe" selected="@(t.Status == TaskItemStatus.Nowe)">Nowe</option>
+                    <option value="@TaskItemStatus.Wtoku" selected="@(t.Status == TaskItemStatus.Wtoku)">W toku</option>
+                    <option value="@TaskItemStatus.Zakonczone" selected="@(t.Status == TaskItemStatus.Zakonczone)">Zakończone</option>
+                    <option value="@TaskItemStatus.Anulowane" selected="@(t.Status == TaskItemStatus.Anulowane)">Anulowane</option>
+                </select>
+                <button class="btn btn-primary" type="submit">Zapisz</button>
+            </form>
+        </div>
+    </div>
+}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Dodaj komentarz</h5>
+        <form method="post" asp-action="DodajKomentarz">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@t.Id" />
+            <textarea class="form-control" name="content" rows="3" maxlength="800"></textarea>
+            <button class="btn btn-primary mt-2" type="submit">Dodaj</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Historia i komentarze</h5>
+
+        @if (Model.Activity.Count == 0)
+        {
+            <div class="text-muted">Brak wpisów.</div>
+        }
+        else
+        {
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 180px;">Data</th>
+                        <th style="width: 260px;">Autor</th>
+                        <th style="width: 180px;">Typ</th>
+                        <th>Treść</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model.Activity)
+                    {
+                        <tr>
+                            <td>@a.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@a.AuthorLabel</td>
+                            <td>@a.Type</td>
+                            <td style="white-space: pre-wrap;">@(string.IsNullOrWhiteSpace(a.Content) ? "-" : a.Content)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

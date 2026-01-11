@@ -1,0 +1,105 @@
+﻿@model List<RosterHive.Models.TimeOffRequest>
+@using RosterHive.Models
+@{
+    ViewData["Title"] = "Panel akceptacji nieobecności";
+    var teams = ViewBag.Teams as List<RosterHive.Models.Team> ?? new List<RosterHive.Models.Team>();
+    int? selectedTeamId = ViewBag.SelectedTeamId as int?;
+    var error = ViewBag.Error as string;
+    var success = ViewBag.Success as string;
+    var conflictMap = ViewBag.ConflictMap as Dictionary<int, bool> ?? new Dictionary<int, bool>();
+    var userMap = ViewBag.UserMap as Dictionary<string, string> ?? new Dictionary<string, string>();
+}
+
+<h1>Panel akceptacji nieobecności</h1>
+<hr />
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+@if (!string.IsNullOrWhiteSpace(success))
+{
+    <div class="alert alert-success">@success</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-6">
+        <label class="form-label">Zespół</label>
+        <select class="form-select" name="teamId">
+            <option value="">Wszystkie</option>
+            @foreach (var t in teams)
+            {
+                <option value="@t.Id" selected="@(selectedTeamId == t.Id)">@t.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-outline-primary w-100" type="submit">Filtruj</button>
+    </div>
+    <div class="col-md-4 d-flex align-items-end justify-content-end">
+        <a class="btn btn-outline-secondary" asp-action="Index">Moje nieobecności</a>
+    </div>
+</form>
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">Brak wniosków do rozpatrzenia.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Użytkownik</th>
+                <th>Zespół</th>
+                <th>Typ</th>
+                <th>Zakres</th>
+                <th>Konflikt z grafikiem</th>
+                <th style="width: 320px;">Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model)
+            {
+                var conflict = conflictMap.ContainsKey(r.Id) ? conflictMap[r.Id] : false;
+                var email = userMap.ContainsKey(r.RequesterUserId) ? userMap[r.RequesterUserId] : "Użytkownik";
+
+                <tr>
+                    <td>@email</td>
+                    <td>@r.Team.Name</td>
+                    <td>@r.Type</td>
+                    <td>@r.StartDate.ToString("yyyy-MM-dd") – @r.EndDate.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        @if (conflict)
+                        {
+                            <span class="badge bg-warning text-dark">Tak</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Nie</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <form method="post" asp-action="Zatwierdz" class="d-flex gap-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@r.Id" />
+                                <input type="text" class="form-control form-control-sm" name="note" placeholder="Uwagi (opcjonalnie)" />
+                                <button class="btn btn-sm btn-success" type="submit">Zatwierdź</button>
+                            </form>
+                        </div>
+                        <div class="d-flex gap-2 mt-2">
+                            <form method="post" asp-action="Odrzuc" class="d-flex gap-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@r.Id" />
+                                <input type="text" class="form-control form-control-sm" name="note" placeholder="Powód (opcjonalnie)" />
+                                <button class="btn btn-sm btn-outline-danger" type="submit">Odrzuć</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,30 @@
+﻿@model RosterHive.Models.Shift
+@{
+    ViewData["Title"] = "Usuń zmianę";
+    var teamName = ViewBag.TeamName as string ?? "Zespół";
+}
+
+<h1>Usuń zmianę</h1>
+<hr />
+
+<div class="alert alert-danger">
+    Czy na pewno chcesz usunąć tę zmianę z grafiku zespołu <strong>@teamName</strong>?
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Początek</dt>
+    <dd class="col-sm-9">@Model.Start.ToString("yyyy-MM-dd HH:mm")</dd>
+
+    <dt class="col-sm-3">Koniec</dt>
+    <dd class="col-sm-9">@Model.End.ToString("yyyy-MM-dd HH:mm")</dd>
+
+    <dt class="col-sm-3">Notatka</dt>
+    <dd class="col-sm-9">@Model.Note</dd>
+</dl>
+
+<form method="post" asp-action="UsunPotwierdz">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button type="submit" class="btn btn-danger">Usuń</button>
+    <a class="btn btn-outline-secondary ms-2" asp-action="Zespol" asp-route-teamId="@Model.TeamId">Anuluj</a>
+</form>

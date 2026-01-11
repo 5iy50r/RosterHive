@@ -1,0 +1,97 @@
+﻿@model List<RosterHive.Models.ShiftSwapRequest>
+@using RosterHive.Models
+@{
+    ViewData["Title"] = "Dostępne podmiany";
+    var teams = ViewBag.Teams as List<RosterHive.Models.Team> ?? new List<RosterHive.Models.Team>();
+    int? selectedTeamId = ViewBag.SelectedTeamId as int?;
+    var error = ViewBag.Error as string;
+    var success = ViewBag.Success as string;
+    var userMap = ViewBag.UserMap as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var conflictMap = ViewBag.ConflictMap as Dictionary<int, bool> ?? new Dictionary<int, bool>();
+}
+
+<h1>Dostępne podmiany</h1>
+<hr />
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+@if (!string.IsNullOrWhiteSpace(success))
+{
+    <div class="alert alert-success">@success</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-6">
+        <label class="form-label">Zespół</label>
+        <select class="form-select" name="teamId">
+            <option value="">Wszystkie</option>
+            @foreach (var t in teams)
+            {
+                <option value="@t.Id" selected="@(selectedTeamId == t.Id)">@t.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-outline-primary w-100" type="submit">Filtruj</button>
+    </div>
+    <div class="col-md-4 d-flex align-items-end justify-content-end">
+        <a class="btn btn-outline-secondary" asp-action="Index">Moje podmiany</a>
+    </div>
+</form>
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">Brak dostępnych podmian.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Zespół</th>
+                <th>Zmiana</th>
+                <th>Prosi</th>
+                <th>Adresat</th>
+                <th>Konflikt</th>
+                <th style="width: 1%"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model)
+            {
+                var requester = userMap.ContainsKey(r.RequesterUserId) ? userMap[r.RequesterUserId] : "Użytkownik";
+                var toLabel = string.IsNullOrWhiteSpace(r.RequestedToUserId) ? "Ogólnie" :
+                (userMap.ContainsKey(r.RequestedToUserId) ? userMap[r.RequestedToUserId] : "Użytkownik");
+
+                var conflict = conflictMap.ContainsKey(r.Id) ? conflictMap[r.Id] : false;
+
+                <tr>
+                    <td>@r.Team.Name</td>
+                    <td>@r.Shift.Start.ToString("yyyy-MM-dd HH:mm") – @r.Shift.End.ToString("HH:mm")</td>
+                    <td>@requester</td>
+                    <td>@toLabel</td>
+                    <td>
+                        @if (conflict)
+                        {
+                            <span class="badge bg-warning text-dark">Tak</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Nie</span>
+                        }
+                    </td>
+                    <td>
+                        <form method="post" asp-action="Przejmij">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@r.Id" />
+                            <button class="btn btn-sm btn-primary" type="submit">Przejmij</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

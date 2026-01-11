@@ -1,0 +1,90 @@
+﻿@model RosterHive.ViewModels.TaskFormViewModel
+@using RosterHive.Models
+@{
+    ViewData["Title"] = "Edytuj zadanie";
+}
+
+<h1>Edytuj zadanie</h1>
+<hr />
+
+<form method="post">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="TeamId" />
+
+    <div class="mb-3">
+        <label class="form-label">Zespół</label>
+        <input class="form-control" value="@(Model.Teams.Count > 0 ? Model.Teams[0].Name : "")" disabled />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Tytuł</label>
+        <input class="form-control" asp-for="Title" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Opis (opcjonalnie)</label>
+        <textarea class="form-control" asp-for="Description" rows="4"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="row g-2">
+        <div class="col-md-4">
+            <label class="form-label">Priorytet</label>
+            <select class="form-select" asp-for="Priority">
+                <option value="@TaskPriority.Niski">Niski</option>
+                <option value="@TaskPriority.Sredni">Średni</option>
+                <option value="@TaskPriority.Wysoki">Wysoki</option>
+                <option value="@TaskPriority.Krytyczny">Krytyczny</option>
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Status</label>
+            <select class="form-select" asp-for="Status">
+                <option value="@TaskItemStatus.Nowe">Nowe</option>
+                <option value="@TaskItemStatus.Wtoku">W toku</option>
+                <option value="@TaskItemStatus.Zakonczone">Zakończone</option>
+                <option value="@TaskItemStatus.Anulowane">Anulowane</option>
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Termin (opcjonalnie)</label>
+            <input class="form-control" asp-for="DueDate" type="date" />
+        </div>
+    </div>
+
+    <div class="mb-3 mt-3">
+        <label class="form-label">Przypisz do (opcjonalnie)</label>
+        <select class="form-select" asp-for="AssignedToUserId">
+            <option value="">Nieprzypisane</option>
+            @foreach (var u in Model.Users)
+            {
+                <option value="@u.UserId" selected="@(Model.AssignedToUserId == u.UserId)">@u.Label</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Powiąż ze zmianą (opcjonalnie)</label>
+        <select class="form-select" asp-for="ShiftId">
+            <option value="">Brak</option>
+            @foreach (var s in Model.Shifts)
+            {
+                <option value="@s.Id" selected="@(Model.ShiftId == s.Id)">@s.Label</option>
+            }
+        </select>
+    </div>
+
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <button class="btn btn-primary" type="submit">Zapisz</button>
+    <a class="btn btn-outline-secondary ms-2" asp-action="Szczegoly" asp-route-id="@Model.Id">Anuluj</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

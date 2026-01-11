@@ -1,0 +1,76 @@
+﻿@model List<RosterHive.Models.TaskItem>
+@using RosterHive.Models
+@{
+    ViewData["Title"] = "Moje zadania";
+    var error = ViewBag.Error as string;
+    var success = ViewBag.Success as string;
+    TaskItemStatus? selected = ViewBag.SelectedStatus is TaskItemStatus s ? s : null;
+}
+
+<h1>Moje zadania</h1>
+<hr />
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+@if (!string.IsNullOrWhiteSpace(success))
+{
+    <div class="alert alert-success">@success</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <label class="form-label">Status</label>
+        <select class="form-select" name="status">
+            <option value="">Wszystkie</option>
+            <option value="@TaskItemStatus.Nowe" selected="@(selected == TaskItemStatus.Nowe)">Nowe</option>
+            <option value="@TaskItemStatus.Wtoku" selected="@(selected == TaskItemStatus.Wtoku)">W toku</option>
+            <option value="@TaskItemStatus.Zakonczone" selected="@(selected == TaskItemStatus.Zakonczone)">Zakończone</option>
+            <option value="@TaskItemStatus.Anulowane" selected="@(selected == TaskItemStatus.Anulowane)">Anulowane</option>
+        </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-outline-primary w-100" type="submit">Filtruj</button>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <a class="btn btn-outline-secondary w-100" asp-action="Moje">Wyczyść</a>
+    </div>
+</form>
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">Brak zadań do wyświetlenia.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Zespół</th>
+                <th>Tytuł</th>
+                <th>Priorytet</th>
+                <th>Status</th>
+                <th>Termin</th>
+                <th style="width: 1%"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in Model)
+            {
+                <tr>
+                    <td>@t.Team.Name</td>
+                    <td>@t.Title</td>
+                    <td>@t.Priority</td>
+                    <td>@t.Status</td>
+                    <td>@(t.DueDate.HasValue ? t.DueDate.Value.ToString("yyyy-MM-dd") : "-")</td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary" asp-action="Szczegoly" asp-route-id="@t.Id">Szczegóły</a>
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Zespol" asp-route-teamId="@t.TeamId">Zespół</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

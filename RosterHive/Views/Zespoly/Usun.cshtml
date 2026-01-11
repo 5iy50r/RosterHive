@@ -1,0 +1,19 @@
+﻿@model RosterHive.Models.Team
+@{
+    ViewData["Title"] = "Usuń zespół";
+}
+
+<h1>Usuń zespół</h1>
+<hr />
+
+<div class="alert alert-danger">
+    Czy na pewno chcesz usunąć zespół <strong>@Model.Name</strong>?
+    Ta operacja usunie także wszystkich członków oraz wszystkie zmiany przypisane do tego zespołu.
+</div>
+
+<form method="post" asp-action="UsunPotwierdz">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button type="submit" class="btn btn-danger">Usuń zespół</button>
+    <a class="btn btn-outline-secondary ms-2" asp-action="Szczegoly" asp-route-id="@Model.Id">Anuluj</a>
+</form>

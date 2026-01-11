@@ -1,0 +1,18 @@
+﻿@model RosterHive.Models.TaskItem
+@{
+    ViewData["Title"] = "Usuń zadanie";
+}
+
+<h1>Usuń zadanie</h1>
+<hr />
+
+<div class="alert alert-danger">
+    Czy na pewno chcesz usunąć zadanie: <strong>@Model.Title</strong>?
+</div>
+
+<form method="post" asp-action="UsunPotwierdz">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button class="btn btn-danger" type="submit">Usuń</button>
+    <a class="btn btn-outline-secondary ms-2" asp-action="Szczegoly" asp-route-id="@Model.Id">Anuluj</a>
+</form>

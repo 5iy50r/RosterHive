@@ -1,0 +1,32 @@
+﻿@model RosterHive.ViewModels.JoinTeamViewModel
+@{
+    ViewData["Title"] = "Dołącz do zespołu";
+}
+
+<h1>Dołącz do zespołu</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-5">
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="JoinCode" class="form-label"></label>
+                <input asp-for="JoinCode" class="form-control" />
+                <span asp-validation-for="JoinCode" class="text-danger"></span>
+            </div>
+
+            <button class="btn btn-primary w-100" type="submit">Dołącz</button>
+        </form>
+
+        <div class="mt-3">
+            <a asp-action="Index">Wróć do listy zespołów</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

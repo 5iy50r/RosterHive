@@ -1,0 +1,99 @@
+﻿@model List<RosterHive.Models.ShiftSwapRequest>
+@using RosterHive.Models
+@{
+    ViewData["Title"] = "Podmiany zmian";
+    var error = ViewBag.Error as string;
+    var success = ViewBag.Success as string;
+    var userMap = ViewBag.UserMap as Dictionary<string, string> ?? new Dictionary<string, string>();
+}
+
+<h1>Podmiany zmian</h1>
+<hr />
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+@if (!string.IsNullOrWhiteSpace(success))
+{
+    <div class="alert alert-success">@success</div>
+}
+
+<div class="d-flex gap-2 mb-3">
+    <a class="btn btn-primary" asp-action="Utworz">Złóż prośbę o podmianę</a>
+    <a class="btn btn-outline-secondary" asp-action="Dostepne">Dostępne podmiany</a>
+    @if (User.IsInRole("Admin"))
+    {
+        <a class="btn btn-outline-secondary" asp-action="Panel">Panel akceptacji</a>
+    }
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">Nie masz jeszcze żadnych próśb o podmianę.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Zespół</th>
+                <th>Zmiana</th>
+                <th>Adresat</th>
+                <th>Przejęta przez</th>
+                <th>Status</th>
+                <th style="width: 1%"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model)
+            {
+                var toLabel = string.IsNullOrWhiteSpace(r.RequestedToUserId) ? "Ogólnie" :
+                (userMap.ContainsKey(r.RequestedToUserId) ? userMap[r.RequestedToUserId] : "Użytkownik");
+
+                var takenLabel = string.IsNullOrWhiteSpace(r.TakenByUserId) ? "-" :
+                (userMap.ContainsKey(r.TakenByUserId) ? userMap[r.TakenByUserId] : "Użytkownik");
+
+                <tr>
+                    <td>@r.Team.Name</td>
+                    <td>@r.Shift.Start.ToString("yyyy-MM-dd HH:mm") – @r.Shift.End.ToString("HH:mm")</td>
+                    <td>@toLabel</td>
+                    <td>@takenLabel</td>
+                    <td>
+                        @if (r.Status == ShiftSwapStatus.Oczekuje)
+                        {
+                            <span class="badge bg-secondary">Oczekuje</span>
+                        }
+                        @if (r.Status == ShiftSwapStatus.Przyjete)
+                        {
+                            <span class="badge bg-warning text-dark">Przyjęte</span>
+                        }
+                        @if (r.Status == ShiftSwapStatus.Zatwierdzone)
+                        {
+                            <span class="badge bg-success">Zatwierdzone</span>
+                        }
+                        @if (r.Status == ShiftSwapStatus.Odrzucone)
+                        {
+                            <span class="badge bg-danger">Odrzucone</span>
+                        }
+                        @if (r.Status == ShiftSwapStatus.Anulowane)
+                        {
+                            <span class="badge bg-dark">Anulowane</span>
+                        }
+                    </td>
+                    <td>
+                        @if (r.Status == ShiftSwapStatus.Oczekuje)
+                        {
+                            <form method="post" asp-action="Anuluj">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@r.Id" />
+                                <button class="btn btn-sm btn-outline-danger" type="submit">Anuluj</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,101 @@
+﻿@model RosterHive.ViewModels.TeamShiftsViewModel
+@{
+    ViewData["Title"] = "Grafik zespołu";
+    var error = ViewBag.Error as string;
+    var success = ViewBag.Success as string;
+}
+
+<h1>Grafik zespołu: @Model.TeamName</h1>
+<hr />
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+@if (!string.IsNullOrWhiteSpace(success))
+{
+    <div class="alert alert-success">@success</div>
+}
+
+<div class="d-flex gap-2 mb-3">
+    <a class="btn btn-outline-secondary" asp-action="Tydzien" asp-route-teamId="@Model.TeamId">Widok tygodniowy</a>
+
+    @if (Model.CanManage)
+    {
+        <a class="btn btn-primary" asp-action="Dodaj" asp-route-teamId="@Model.TeamId">Dodaj zmianę</a>
+    }
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <input type="hidden" name="teamId" value="@Model.TeamId" />
+
+    <div class="col-md-3">
+        <label class="form-label">Od</label>
+        <input class="form-control" type="date" name="from" value="@(Model.From?.ToString("yyyy-MM-dd"))" />
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Do</label>
+        <input class="form-control" type="date" name="to" value="@(Model.To?.ToString("yyyy-MM-dd"))" />
+    </div>
+
+    <div class="col-md-3 d-flex align-items-end">
+        <button class="btn btn-outline-primary w-100" type="submit">Filtruj</button>
+    </div>
+
+    <div class="col-md-3 d-flex align-items-end">
+        <a class="btn btn-outline-secondary w-100" asp-action="Zespol" asp-route-teamId="@Model.TeamId">Wyczyść</a>
+    </div>
+</form>
+
+@if (Model.Shifts.Count == 0)
+{
+    <div class="alert alert-info">Brak zmian w wybranym zakresie.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Początek</th>
+                <th>Koniec</th>
+                <th>Lokalizacja/Obszar</th>
+                <th>Obsada</th>
+                <th>Notatka</th>
+                <th style="width: 1%"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model.Shifts)
+            {
+                var isOpen = s.EmployeesLabel == "Nieobsadzona";
+                <tr>
+                    <td>@s.Start.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@s.End.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@(string.IsNullOrWhiteSpace(s.Location) ? "-" : s.Location)</td>
+                    <td>
+                        @if (isOpen)
+                        {
+                            <span class="badge bg-warning text-dark">Nieobsadzona</span>
+                        }
+                        else
+                        {
+                            @s.EmployeesLabel
+                        }
+                    </td>
+                    <td>@(string.IsNullOrWhiteSpace(s.Note) ? "-" : s.Note)</td>
+                    <td>
+                        @if (Model.CanManage)
+                        {
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="Edytuj" asp-route-id="@s.Id">Edytuj</a>
+                                <a class="btn btn-sm btn-outline-danger" asp-action="Usun" asp-route-id="@s.Id">Usuń</a>
+                            </div>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

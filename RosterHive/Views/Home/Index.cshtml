@@ -1,0 +1,112 @@
+﻿@{
+    ViewData["Title"] = "Strona główna";
+    var isAuth = User?.Identity?.IsAuthenticated ?? false;
+    var isAdmin = isAuth && User!.IsInRole("Admin");
+
+    var loginUrl = Url.Action("Logowanie", "Konto") ?? "/Konto/Logowanie";
+    var registerUrl = Url.Action("Rejestracja", "Konto") ?? "/Konto/Rejestracja";
+
+    var teamsUrl = Url.Action("Index", "Zespoly") ?? "/Zespoly";
+    var myShiftsUrl = Url.Action("Index", "MojeZmiany") ?? "/MojeZmiany";
+
+    var adminUrl = Url.Action("Index", "Administracja") ?? "/Administracja";
+    var timeOffPanelUrl = Url.Action("Panel", "Nieobecnosci") ?? "/Nieobecnosci/Panel";
+    var swapsPanelUrl = Url.Action("Panel", "Podmiany") ?? "/Podmiany/Panel";
+    var hoursReportUrl = Url.Action("Godziny", "Raporty") ?? "/Raporty/Godziny";
+}
+
+<div class="rh-hero">
+    <div class="rh-hero-inner">
+        <div class="rh-hero-badge">RosterHive</div>
+        <h1 class="rh-hero-title">Zarządzanie zespołami, grafikiem i zadaniami w jednym miejscu</h1>
+        <p class="rh-hero-subtitle">
+            Aplikacja ułatwia planowanie zmian, obsługę nieobecności i podmian, przypisywanie zadań oraz generowanie raportów.
+            OSTRZEŻENIE: W aplikacji nie ma nic o kogutach!
+        </p>
+
+        @if (!isAuth)
+        {
+            <div class="rh-hero-actions">
+                <a class="btn btn-primary btn-lg" href="@loginUrl">Zaloguj się</a>
+                <a class="btn btn-outline-secondary btn-lg" href="@registerUrl">Utwórz konto</a>
+            </div>
+
+            <div class="rh-hero-note">
+                Masz już konto? Zaloguj się, aby przejść do modułów aplikacji.
+            </div>
+        }
+        else
+        {
+            <div class="rh-hero-actions">
+                <a class="btn btn-primary btn-lg" href="@teamsUrl">Przejdź do zespołów</a>
+                <a class="btn btn-outline-secondary btn-lg" href="@myShiftsUrl">Moje zmiany</a>
+            </div>
+
+            @if (isAdmin)
+            {
+                <div class="rh-quick">
+                    <div class="rh-quick-title">Skróty administracyjne</div>
+                    <div class="rh-quick-grid">
+                        <a class="rh-card" href="@adminUrl">
+                            <div class="rh-card-title">Administracja</div>
+                            <div class="rh-card-text">Użytkownicy, blokady, kontrola dostępu.</div>
+                        </a>
+                        <a class="rh-card" href="@timeOffPanelUrl">
+                            <div class="rh-card-title">Akceptacja nieobecności</div>
+                            <div class="rh-card-text">Wnioski oczekujące i historia decyzji.</div>
+                        </a>
+                        <a class="rh-card" href="@swapsPanelUrl">
+                            <div class="rh-card-title">Akceptacja podmian</div>
+                            <div class="rh-card-text">Obsługa procesu podmiany zmian.</div>
+                        </a>
+                        <a class="rh-card" href="@hoursReportUrl">
+                            <div class="rh-card-title">Raport godzin</div>
+                            <div class="rh-card-text">Sumy godzin per pracownik i zakres dat.</div>
+                        </a>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<div class="rh-section">
+    <h2 class="rh-section-title">Moduły aplikacji</h2>
+
+    <div class="rh-modules">
+        <div class="rh-module">
+            <div class="rh-module-title">Zespoły</div>
+            <div class="rh-module-text">
+                Tworzenie i edycja zespołów, dołączanie przez kod, zarządzanie członkami i rolami.
+            </div>
+        </div>
+
+        <div class="rh-module">
+            <div class="rh-module-title">Grafik zmian</div>
+            <div class="rh-module-text">
+                Tworzenie zmian z lokalizacją i notatką, przypisywanie wielu pracowników do jednej zmiany, podgląd zespołu.
+            </div>
+        </div>
+
+        <div class="rh-module">
+            <div class="rh-module-title">Nieobecności i podmiany</div>
+            <div class="rh-module-text">
+                Wnioski urlopowe i proces podmiany zmian z obsługą statusów, historii i akceptacji przez Admina.
+            </div>
+        </div>
+
+        <div class="rh-module">
+            <div class="rh-module-title">Zadania</div>
+            <div class="rh-module-text">
+                Zadania ogólne lub powiązane ze zmianą, priorytety, terminy, przypisania oraz komentarze i historia aktywności.
+            </div>
+        </div>
+
+        <div class="rh-module">
+            <div class="rh-module-title">Raporty</div>
+            <div class="rh-module-text">
+                Raport godzin, raport nieobecności, raport zadań oraz raport obciążenia zespołu z listą zmian otwartych.
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,115 @@
+﻿@model List<RosterHive.Models.TaskItem>
+@using RosterHive.Models
+@{
+    ViewData["Title"] = "Zadania zespołu";
+    var team = ViewBag.Team as RosterHive.Models.Team;
+    bool canManage = ViewBag.CanManage is bool b && b;
+    var userMap = ViewBag.UserMap as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var error = ViewBag.Error as string;
+    var success = ViewBag.Success as string;
+
+    TaskItemStatus? selectedStatus = ViewBag.SelectedStatus is TaskItemStatus s ? s : null;
+    string selectedAssignedTo = ViewBag.SelectedAssignedTo as string ?? "";
+}
+
+<h1>Zadania zespołu: @team?.Name</h1>
+<hr />
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+@if (!string.IsNullOrWhiteSpace(success))
+{
+    <div class="alert alert-success">@success</div>
+}
+
+<div class="d-flex gap-2 mb-3">
+    <a class="btn btn-outline-secondary" asp-action="Moje">Moje zadania</a>
+    @if (canManage && team != null)
+    {
+        <a class="btn btn-primary" asp-action="Utworz" asp-route-teamId="@team.Id">Utwórz zadanie</a>
+    }
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <input type="hidden" name="teamId" value="@team?.Id" />
+
+    <div class="col-md-4">
+        <label class="form-label">Status</label>
+        <select class="form-select" name="status">
+            <option value="">Wszystkie</option>
+            <option value="@TaskItemStatus.Nowe" selected="@(selectedStatus == TaskItemStatus.Nowe)">Nowe</option>
+            <option value="@TaskItemStatus.Wtoku" selected="@(selectedStatus == TaskItemStatus.Wtoku)">W toku</option>
+            <option value="@TaskItemStatus.Zakonczone" selected="@(selectedStatus == TaskItemStatus.Zakonczone)">Zakończone</option>
+            <option value="@TaskItemStatus.Anulowane" selected="@(selectedStatus == TaskItemStatus.Anulowane)">Anulowane</option>
+        </select>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">Przypisane do</label>
+        <select class="form-select" name="assignedTo">
+            <option value="">Wszyscy / nieprzypisane</option>
+            @foreach (var kv in userMap.OrderBy(x => x.Value))
+            {
+                <option value="@kv.Key" selected="@(selectedAssignedTo == kv.Key)">@kv.Value</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-outline-primary w-100" type="submit">Filtruj</button>
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end">
+        <a class="btn btn-outline-secondary w-100" asp-action="Zespol" asp-route-teamId="@team?.Id">Wyczyść</a>
+    </div>
+</form>
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">Brak zadań do wyświetlenia.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Tytuł</th>
+                <th>Priorytet</th>
+                <th>Status</th>
+                <th>Termin</th>
+                <th>Przypisane do</th>
+                <th>Powiązanie ze zmianą</th>
+                <th style="width: 1%"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in Model)
+            {
+                var assignee = string.IsNullOrWhiteSpace(t.AssignedToUserId) ? "-" :
+                (userMap.ContainsKey(t.AssignedToUserId) ? userMap[t.AssignedToUserId] : "Użytkownik");
+
+                <tr>
+                    <td>@t.Title</td>
+                    <td>@t.Priority</td>
+                    <td>@t.Status</td>
+                    <td>@(t.DueDate.HasValue ? t.DueDate.Value.ToString("yyyy-MM-dd") : "-")</td>
+                    <td>@assignee</td>
+                    <td>@(t.ShiftId.HasValue ? "Tak" : "Nie")</td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Szczegoly" asp-route-id="@t.Id">Szczegóły</a>
+                            @if (canManage)
+                            {
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="Edytuj" asp-route-id="@t.Id">Edytuj</a>
+                                <a class="btn btn-sm btn-outline-danger" asp-action="Usun" asp-route-id="@t.Id">Usuń</a>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

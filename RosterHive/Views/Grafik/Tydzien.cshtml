@@ -1,0 +1,93 @@
+﻿@model RosterHive.ViewModels.TeamShiftsViewModel
+@{
+    ViewData["Title"] = "Grafik tygodniowy";
+    var monday = Model.From?.Date ?? DateTime.Today;
+    var prev = monday.AddDays(-7).ToString("yyyy-MM-dd");
+    var next = monday.AddDays(7).ToString("yyyy-MM-dd");
+}
+
+<h1>Grafik tygodniowy: @Model.TeamName</h1>
+<hr />
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Tydzien" asp-route-teamId="@Model.TeamId" asp-route-day="@prev">Poprzedni tydzień</a>
+        <a class="btn btn-outline-secondary" asp-action="Tydzien" asp-route-teamId="@Model.TeamId" asp-route-day="@next">Następny tydzień</a>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" asp-action="Zespol" asp-route-teamId="@Model.TeamId">Widok listy</a>
+        @if (Model.CanManage)
+        {
+            <a class="btn btn-primary" asp-action="Dodaj" asp-route-teamId="@Model.TeamId">Dodaj zmianę</a>
+        }
+    </div>
+</div>
+
+<div class="alert alert-secondary">
+    Zakres: <strong>@monday.ToString("yyyy-MM-dd")</strong> – <strong>@(monday.AddDays(6).ToString("yyyy-MM-dd"))</strong>
+</div>
+
+@if (Model.Shifts.Count == 0)
+{
+    <div class="alert alert-info">Brak zmian w tym tygodniu.</div>
+}
+else
+{
+    @for (int i = 0; i < 7; i++)
+    {
+        var day = monday.AddDays(i);
+        var dayShifts = Model.Shifts.Where(s => s.Start.Date == day.Date).OrderBy(s => s.Start).ToList();
+
+        <h4 class="mt-4">@day.ToString("dddd, yyyy-MM-dd")</h4>
+
+        @if (dayShifts.Count == 0)
+        {
+            <div class="text-muted">Brak zmian.</div>
+        }
+        else
+        {
+            <table class="table table-sm table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 180px;">Godziny</th>
+                        <th style="width: 220px;">Lokalizacja/Obszar</th>
+                        <th>Obsada</th>
+                        <th>Notatka</th>
+                        <th style="width: 1%"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in dayShifts)
+                    {
+                        var isOpen = s.EmployeesLabel == "Nieobsadzona";
+                        <tr>
+                            <td>@s.Start.ToString("HH:mm") – @s.End.ToString("HH:mm")</td>
+                            <td>@(string.IsNullOrWhiteSpace(s.Location) ? "-" : s.Location)</td>
+                            <td>
+                                @if (isOpen)
+                                {
+                                    <span class="badge bg-warning text-dark">Nieobsadzona</span>
+                                }
+                                else
+                                {
+                                    @s.EmployeesLabel
+                                }
+                            </td>
+                            <td>@(string.IsNullOrWhiteSpace(s.Note) ? "-" : s.Note)</td>
+                            <td>
+                                @if (Model.CanManage)
+                                {
+                                    <div class="d-flex gap-2">
+                                        <a class="btn btn-sm btn-outline-secondary" asp-action="Edytuj" asp-route-id="@s.Id">Edytuj</a>
+                                        <a class="btn btn-sm btn-outline-danger" asp-action="Usun" asp-route-id="@s.Id">Usuń</a>
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+}

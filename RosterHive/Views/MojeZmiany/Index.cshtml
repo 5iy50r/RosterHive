@@ -1,0 +1,36 @@
+﻿@model RosterHive.ViewModels.MyShiftsViewModel
+@{
+    ViewData["Title"] = "Moje zmiany";
+}
+
+<h1>Moje zmiany</h1>
+<hr />
+
+@if (Model.Shifts.Count == 0)
+{
+    <div class="alert alert-info">Nie masz przypisanych żadnych zmian.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Zespół</th>
+                <th>Początek</th>
+                <th>Koniec</th>
+                <th>Notatka</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model.Shifts)
+            {
+                <tr>
+                    <td>@s.TeamName</td>
+                    <td>@s.Start.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@s.End.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@s.Note</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

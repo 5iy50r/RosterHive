@@ -1,0 +1,68 @@
+﻿@model RosterHive.ViewModels.TimeOffCreateViewModel
+@using RosterHive.Models
+@{
+    ViewData["Title"] = "Złóż wniosek o nieobecność";
+}
+
+<h1>Złóż wniosek o nieobecność</h1>
+<hr />
+
+@if (Model.Teams.Count == 0)
+{
+    <div class="alert alert-info">Nie należysz do żadnego zespołu. Dołącz do zespołu, aby złożyć wniosek.</div>
+    <a class="btn btn-outline-secondary" asp-controller="Zespoly" asp-action="Index">Wróć</a>
+}
+else
+{
+    <form method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="mb-3">
+            <label class="form-label">Zespół</label>
+            <select class="form-select" asp-for="TeamId" required>
+                @foreach (var t in Model.Teams)
+                {
+                    <option value="@t.Id" selected="@(Model.TeamId == t.Id)">@t.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Typ nieobecności</label>
+            <select class="form-select" asp-for="Type" required>
+                <option value="@TimeOffType.UrlopWypoczynkowy">Urlop wypoczynkowy</option>
+                <option value="@TimeOffType.UrlopNaZadanie">Urlop na żądanie</option>
+                <option value="@TimeOffType.ZwolnienieLekarskie">Zwolnienie lekarskie</option>
+                <option value="@TimeOffType.Inne">Inne</option>
+            </select>
+        </div>
+
+        <div class="row g-2">
+            <div class="col-md-6">
+                <label class="form-label">Od</label>
+                <input class="form-control" asp-for="StartDate" type="date" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Do</label>
+                <input class="form-control" asp-for="EndDate" type="date" />
+                <span asp-validation-for="EndDate" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="mb-3 mt-3">
+            <label class="form-label">Uzasadnienie (opcjonalnie)</label>
+            <textarea class="form-control" asp-for="Reason" rows="3"></textarea>
+            <span asp-validation-for="Reason" class="text-danger"></span>
+        </div>
+
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <button class="btn btn-primary" type="submit">Wyślij wniosek</button>
+        <a class="btn btn-outline-secondary ms-2" asp-action="Index">Anuluj</a>
+    </form>
+
+    @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    }
+}

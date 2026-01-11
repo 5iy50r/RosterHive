@@ -1,0 +1,160 @@
+﻿@model RosterHive.ViewModels.AbsenceReportViewModel
+@using RosterHive.Models
+@{
+    ViewData["Title"] = "Raport nieobecności";
+}
+
+<h1>Raport nieobecności</h1>
+<hr />
+
+<form method="get" class="row g-2 align-items-end mb-4">
+    <div class="col-md-5">
+        <label class="form-label">Zespół</label>
+        <select class="form-select" name="teamId" required>
+            @foreach (var t in Model.Teams)
+            {
+                <option value="@t.Id" selected="@(t.Id == Model.TeamId)">@t.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Od</label>
+        <input class="form-control" type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Do</label>
+        <input class="form-control" type="date" name="to" value="@Model.To.ToString("yyyy-MM-dd")" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Status</label>
+        <select class="form-select" name="status">
+            <option value="">Wszystkie</option>
+            <option value="@TimeOffStatus.Oczekuje" selected="@(Model.Status == TimeOffStatus.Oczekuje)">Oczekuje</option>
+            <option value="@TimeOffStatus.Zatwierdzony" selected="@(Model.Status == TimeOffStatus.Zatwierdzony)">Zatwierdzony</option>
+            <option value="@TimeOffStatus.Odrzucony" selected="@(Model.Status == TimeOffStatus.Odrzucony)">Odrzucony</option>
+            <option value="@TimeOffStatus.Anulowany" selected="@(Model.Status == TimeOffStatus.Anulowany)">Anulowany</option>
+        </select>
+    </div>
+
+    <div class="col-md-1 d-grid">
+        <button class="btn btn-primary" type="submit">OK</button>
+    </div>
+</form>
+
+<div class="d-flex gap-2 mb-3">
+    <a class="btn btn-outline-secondary"
+       asp-action="EksportCsv"
+       asp-route-teamId="@Model.TeamId"
+       asp-route-from="@Model.From.ToString("yyyy-MM-dd")"
+       asp-route-to="@Model.To.ToString("yyyy-MM-dd")"
+       asp-route-status="@(Model.Status.HasValue ? Model.Status.ToString() : null)">
+        Eksport CSV
+    </a>
+</div>
+
+<h4 class="mb-2">Podsumowanie (wg użytkownika)</h4>
+
+@if (Model.Summary.Count == 0)
+{
+    <div class="alert alert-info">Brak danych w wybranym zakresie.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Pracownik</th>
+                <th class="text-end">Oczekuje</th>
+                <th class="text-end">Zatwierdzone</th>
+                <th class="text-end">Odrzucone</th>
+                <th class="text-end">Anulowane</th>
+                <th class="text-end">Dni zatwierdzone</th>
+                <th class="text-end">Dni razem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model.Summary)
+            {
+                <tr>
+                    <td>@r.Email</td>
+                    <td class="text-end">@r.PendingCount</td>
+                    <td class="text-end">@r.ApprovedCount</td>
+                    <td class="text-end">@r.RejectedCount</td>
+                    <td class="text-end">@r.CanceledCount</td>
+                    <td class="text-end">@r.ApprovedDays.ToString("0.##")</td>
+                    <td class="text-end">@r.TotalDays.ToString("0.##")</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>Razem</th>
+                <th class="text-end"></th>
+                <th class="text-end"></th>
+                <th class="text-end"></th>
+                <th class="text-end"></th>
+                <th class="text-end">@Model.TotalApprovedDays.ToString("0.##")</th>
+                <th class="text-end">@Model.TotalDays.ToString("0.##")</th>
+            </tr>
+        </tfoot>
+    </table>
+}
+
+<h4 class="mt-4 mb-2">Szczegóły</h4>
+
+@if (Model.Requests.Count == 0)
+{
+    <div class="alert alert-info">Brak wniosków w wybranym zakresie.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Pracownik</th>
+                <th>Typ</th>
+                <th>Okres</th>
+                <th class="text-end">Dni (w zakresie)</th>
+                <th>Status</th>
+                <th>Utworzono</th>
+                <th>Rozpatrzenie</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model.Requests)
+            {
+                var okres = $"{r.StartDate:yyyy-MM-dd} – {r.EndDate:yyyy-MM-dd}";
+                var rozpatrzenie = r.ReviewedAt.HasValue ? $"{r.ReviewedAt.Value.ToLocalTime():yyyy-MM-dd HH:mm} • {r.ReviewedBy}" : "-";
+
+                <tr>
+                    <td>@r.Email</td>
+                    <td>@r.Type</td>
+                    <td>@okres</td>
+                    <td class="text-end">@r.DaysInRange.ToString("0.##")</td>
+                    <td>@r.Status</td>
+                    <td>@r.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@rozpatrzenie</td>
+                </tr>
+
+                @if (!string.IsNullOrWhiteSpace(r.Reason) || !string.IsNullOrWhiteSpace(r.ReviewNote))
+                {
+                    <tr>
+                        <td colspan="7" class="text-muted">
+                            @if (!string.IsNullOrWhiteSpace(r.Reason))
+                            {
+                                <div><strong>Powód:</strong> @r.Reason</div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(r.ReviewNote))
+                            {
+                                <div><strong>Notatka:</strong> @r.ReviewNote</div>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}

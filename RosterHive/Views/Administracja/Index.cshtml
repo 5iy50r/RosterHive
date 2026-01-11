@@ -1,0 +1,104 @@
+﻿@model RosterHive.ViewModels.AdminUsersViewModel
+@{
+    ViewData["Title"] = "Panel administracyjny";
+    var error = ViewBag.Error as string;
+    var success = ViewBag.Success as string;
+}
+
+<h1>Panel administracyjny</h1>
+<hr />
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+@if (!string.IsNullOrWhiteSpace(success))
+{
+    <div class="alert alert-success">@success</div>
+}
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>E-mail</th>
+            <th>Rola</th>
+            <th>Status</th>
+            <th style="width: 1%"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model.Users)
+        {
+            <tr>
+                <td>
+                    @u.Email
+                    @if (u.IsRoot)
+                    {
+                        <span class="badge bg-dark ms-2">root</span>
+                    }
+                </td>
+                <td>@u.Role</td>
+                <td>@u.LockInfo</td>
+                <td class="text-nowrap">
+                    @if (u.IsSelf)
+                    {
+                        <span class="text-muted">To Twoje konto</span>
+                    }
+                    else if (u.IsRoot)
+                    {
+                        <span class="text-muted">Konto chronione</span>
+                    }
+                    else
+                    {
+                        var canManageLock = Model.IsCurrentRoot || !u.IsAdmin;
+
+                        if (canManageLock)
+                        {
+                            if (u.IsLocked)
+                            {
+                                <form method="post" asp-action="Odblokuj" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@u.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Odblokuj</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form method="post" asp-action="Zablokuj" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@u.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Zablokuj</button>
+                                </form>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">Konto Admin</span>
+                        }
+
+                        if (Model.IsCurrentRoot)
+                        {
+                            if (u.IsAdmin)
+                            {
+                                <form method="post" asp-action="OdbierzAdmina" class="d-inline ms-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@u.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-warning">Odbierz Admina</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form method="post" asp-action="NadajAdmina" class="d-inline ms-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@u.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Nadaj Admina</button>
+                                </form>
+                            }
+                        }
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

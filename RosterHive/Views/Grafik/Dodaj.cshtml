@@ -1,0 +1,57 @@
+﻿@model RosterHive.ViewModels.ShiftFormViewModel
+@{
+    ViewData["Title"] = "Dodaj zmianę";
+}
+
+<h1>Dodaj zmianę</h1>
+<hr />
+
+<form method="post">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" asp-for="TeamId" />
+
+    <div class="mb-3">
+        <label asp-for="Start" class="form-label">Początek</label>
+        <input asp-for="Start" class="form-control" type="datetime-local" />
+        <span asp-validation-for="Start" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="End" class="form-label">Koniec</label>
+        <input asp-for="End" class="form-control" type="datetime-local" />
+        <span asp-validation-for="End" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Location" class="form-label">Lokalizacja/Obszar</label>
+        <input asp-for="Location" class="form-control" placeholder="Np. Magazyn A, Strefa 2" />
+        <span asp-validation-for="Location" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Note" class="form-label">Notatka</label>
+        <textarea asp-for="Note" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Note" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Pracownicy (opcjonalnie)</label>
+        <select class="form-select" name="SelectedUserIds" multiple size="8">
+            @foreach (var e in Model.Employees)
+            {
+                <option value="@e.UserId">@e.Label</option>
+            }
+        </select>
+        <div class="text-muted mt-1">Jeśli nie wybierzesz nikogo, zmiana będzie oznaczona jako nieobsadzona.</div>
+    </div>
+
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <button type="submit" class="btn btn-primary">Zapisz</button>
+    <a class="btn btn-outline-secondary ms-2" asp-action="Zespol" asp-route-teamId="@Model.TeamId">Anuluj</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

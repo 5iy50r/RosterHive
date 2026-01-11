@@ -1,0 +1,71 @@
+﻿@model RosterHive.ViewModels.HoursReportViewModel
+@{
+    ViewData["Title"] = "Raport godzin";
+}
+
+<h1>Raport godzin</h1>
+<hr />
+
+@if (Model.Teams.Count == 0)
+{
+    <div class="alert alert-info">Brak zespołów. Utwórz zespół, aby generować raport.</div>
+}
+else
+{
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-5">
+            <label class="form-label">Zespół</label>
+            <select class="form-select" name="teamId" required>
+                @foreach (var t in Model.Teams)
+                {
+                    <option value="@t.Id" selected="@(Model.TeamId == t.Id)">@t.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Od</label>
+            <input class="form-control" type="date" name="from" value="@(Model.From?.ToString("yyyy-MM-dd"))" />
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Do</label>
+            <input class="form-control" type="date" name="to" value="@(Model.To?.ToString("yyyy-MM-dd"))" />
+        </div>
+
+        <div class="col-md-1 d-flex align-items-end">
+            <button class="btn btn-primary w-100" type="submit">OK</button>
+        </div>
+    </form>
+
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="alert alert-info">Brak danych w wybranym zakresie.</div>
+    }
+    else
+    {
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Pracownik</th>
+                    <th class="text-end">Godziny</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.Rows)
+                {
+                    <tr>
+                        <td>@r.Email</td>
+                        <td class="text-end">@r.Hours.ToString("0.00")</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>Razem</th>
+                    <th class="text-end">@Model.TotalHours.ToString("0.00")</th>
+                </tr>
+            </tfoot>
+        </table>
+    }
+}

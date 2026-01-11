@@ -1,0 +1,53 @@
+﻿@model RosterHive.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Logowanie";
+    bool blocked = ViewBag.Blocked is bool b && b;
+}
+
+<h1>Logowanie</h1>
+<hr />
+
+@if (blocked)
+{
+    <div class="alert alert-danger text-center" style="font-size: 1.4rem; font-weight: 800; text-transform: uppercase;">
+        ZABLOKOWANO. BRAK DOSTĘPU.
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-5">
+        <form method="post" asp-action="Logowanie">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ReturnUrl" />
+
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="username" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label"></label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Zaloguj</button>
+        </form>
+
+        <div class="mt-3">
+            <a asp-action="Rejestracja" asp-route-returnUrl="@Model.ReturnUrl">Nie masz konta? Zarejestruj się</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

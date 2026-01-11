@@ -1,0 +1,88 @@
+﻿@model RosterHive.ViewModels.TeamLoadReportViewModel
+@{
+    ViewData["Title"] = "Raport obciążenia zespołu";
+}
+
+<h1>Raport obciążenia zespołu</h1>
+<hr />
+
+<form method="get" class="row g-2 align-items-end mb-4">
+    <div class="col-md-5">
+        <label class="form-label">Zespół</label>
+        <select class="form-select" name="teamId" required>
+            @foreach (var t in Model.Teams)
+            {
+                <option value="@t.Id" selected="@(t.Id == Model.TeamId)">@t.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Od</label>
+        <input class="form-control" type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Do</label>
+        <input class="form-control" type="date" name="to" value="@Model.To.ToString("yyyy-MM-dd")" />
+    </div>
+
+    <div class="col-md-1 d-grid">
+        <button class="btn btn-primary" type="submit">OK</button>
+    </div>
+</form>
+
+<div class="d-flex gap-2 mb-3">
+    <a class="btn btn-outline-secondary"
+       asp-action="EksportCsv"
+       asp-route-teamId="@Model.TeamId"
+       asp-route-from="@Model.From.ToString("yyyy-MM-dd")"
+       asp-route-to="@Model.To.ToString("yyyy-MM-dd")">
+        Eksport CSV
+    </a>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Podsumowanie</h5>
+        <div class="row g-2">
+            <div class="col-md-3"><strong>Liczba zmian:</strong> @Model.TotalShifts</div>
+            <div class="col-md-3"><strong>Zmiany obsadzone:</strong> @Model.StaffedShifts</div>
+            <div class="col-md-3"><strong>Zmiany otwarte:</strong> @Model.OpenShifts</div>
+            <div class="col-md-3"><strong>Łącznie przypisań:</strong> @Model.TotalAssignments</div>
+            <div class="col-md-3"><strong>Średnia osób na zmianę:</strong> @Model.AvgPeoplePerShift.ToString("0.##")</div>
+            <div class="col-md-4"><strong>Średnia osób na obsadzoną zmianę:</strong> @Model.AvgPeoplePerStaffedShift.ToString("0.##")</div>
+        </div>
+    </div>
+</div>
+
+<h4 class="mt-4 mb-2">Otwarte zmiany (bez przypisań)</h4>
+
+@if (Model.OpenShiftList.Count == 0)
+{
+    <div class="alert alert-info">Brak otwartych zmian w wybranym zakresie.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Godziny</th>
+                <th>Lokalizacja</th>
+                <th>Notatka</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model.OpenShiftList)
+            {
+                <tr>
+                    <td>@s.Start.ToString("yyyy-MM-dd")</td>
+                    <td>@s.Start.ToString("HH:mm") – @s.End.ToString("HH:mm")</td>
+                    <td>@(string.IsNullOrWhiteSpace(s.Location) ? "-" : s.Location)</td>
+                    <td>@(string.IsNullOrWhiteSpace(s.Note) ? "-" : s.Note)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
